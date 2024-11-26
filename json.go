@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+
+	_ "github.com/BlackestDawn/chirpy/internal/database"
 )
 
-func returnJSON(w http.ResponseWriter, code int, data interface{}) {
+func respondJSON(w http.ResponseWriter, code int, data interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	jsonData, err := json.Marshal(data)
 	if err != nil {
@@ -18,7 +20,7 @@ func returnJSON(w http.ResponseWriter, code int, data interface{}) {
 	w.Write(jsonData)
 }
 
-func returnJSONError(w http.ResponseWriter, code int, msg string, err error) {
+func respondJSONError(w http.ResponseWriter, code int, msg string, err error) {
 	if err != nil {
 		log.Println(err)
 	}
@@ -27,5 +29,5 @@ func returnJSONError(w http.ResponseWriter, code int, msg string, err error) {
 		Error string `json:"error"`
 	}
 
-	returnJSON(w, code, errVal{Error: msg})
+	respondJSON(w, code, errVal{Error: msg})
 }
