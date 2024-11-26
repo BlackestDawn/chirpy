@@ -23,9 +23,9 @@ func (c *apiConfig) middlewareMetricInc(next http.Handler) http.Handler {
 }
 
 func (c *apiConfig) handlerHits(w http.ResponseWriter, r *http.Request) {
-	w.Header().Add("Content-Type", "text/plain; charset=utf-8")
+	w.Header().Add("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	hitStr := fmt.Sprintf("Hits: %v", c.fileserverHits.Load())
+	hitStr := fmt.Sprintf("<html><body><h1>Welcome, Chirpy Admin</h1><p>Chirpy has been visited %d times!</p></body></html>", c.fileserverHits.Load())
 	w.Write([]byte(hitStr))
 }
 
