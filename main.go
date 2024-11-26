@@ -16,6 +16,7 @@ func main() {
 
 	// path routing: API
 	serverMux.HandleFunc("GET /api/healthz", handlerHealth)
+	serverMux.HandleFunc("POST /api/validate_chirp", handlerValidateChirp)
 
 	// path routing: admin
 	serverMux.HandleFunc("GET /admin/metrics", apiCfg.handlerHits)
