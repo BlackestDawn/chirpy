@@ -15,6 +15,7 @@ type apiConfig struct {
 	dbQueries      *database.Queries
 	platform       string
 	tokenSecret    string
+	apiConfig      string
 }
 
 func NewApiConfig() (*apiConfig, error) {
@@ -22,6 +23,7 @@ func NewApiConfig() (*apiConfig, error) {
 	cfg.fileserverHits.Store(0)
 	cfg.platform = os.Getenv("PLATFORM")
 	cfg.tokenSecret = os.Getenv("SECRET")
+	cfg.apiConfig = os.Getenv("POLKA_KEY")
 
 	dbURL := os.Getenv("DB_URL")
 	db, err := sql.Open("postgres", dbURL)

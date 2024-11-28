@@ -1,9 +1,10 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
+	"slices"
+	"strings"
 
 	"github.com/BlackestDawn/chirpy/internal/auth"
 	"github.com/BlackestDawn/chirpy/internal/database"
@@ -45,7 +46,7 @@ func (c *apiConfig) handlerNewChirp(w http.ResponseWriter, r *http.Request) {
 		Body:   data.Body,
 		UserID: userID,
 	}
-	retVal, err := c.dbQueries.CreatePost(context.Background(), newPost)
+	retVal, err := c.dbQueries.CreatePost(r.Context(), newPost)
 	if err != nil {
 		respondJSONError(w, http.StatusInternalServerError, "failed storing chirp", err)
 		return
@@ -56,10 +57,28 @@ func (c *apiConfig) handlerNewChirp(w http.ResponseWriter, r *http.Request) {
 
 // Handler: GET /api/chirps
 func (c *apiConfig) handlerListChirps(w http.ResponseWriter, r *http.Request) {
-	retVal, err := c.dbQueries.ListPosts(context.Background())
+	authorIDstr := r.URL.Query().Get("author_id")
+	sortOrder := strings.ToLower(r.URL.Query().Get("sort"))
+
+	var retVal = []database.Post{}
+	var err error
+	if authorIDstr == "" {
+		retVal, err = c.dbQueries.ListPosts(r.Context())
+	} else {
+		authorID, err := uuid.Parse(authorIDstr)
+		if err != nil {
+			respondJSONError(w, http.StatusBadRequest, "error decoding UUID", err)
+			return
+		}
+		retVal, err = c.dbQueries.ListPostsFromUser(r.Context(), authorID)
+	}
 	if err != nil {
 		respondJSONError(w, http.StatusInternalServerError, "error fetching posts", err)
 		return
+	}
+
+	if sortOrder == "desc" {
+		slices.Reverse(retVal)
 	}
 
 	respondJSON(w, http.StatusOK, retVal)
@@ -73,7 +92,7 @@ func (c *apiConfig) handlerGetChirp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	post, err := c.dbQueries.GetPostByID(context.Background(), postID)
+	post, err := c.dbQueries.GetPostByID(r.Context(), postID)
 	if err != nil {
 		respondJSONError(w, http.StatusNotFound, "error fetching post", err)
 		return
@@ -102,7 +121,7 @@ func (c *apiConfig) handlerDeleteChirp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	post, err := c.dbQueries.GetPostByID(context.Background(), postID)
+	post, err := c.dbQueries.GetPostByID(r.Context(), postID)
 	if err != nil {
 		respondJSONError(w, http.StatusNotFound, "error fetching post data", err)
 		return
@@ -112,6 +131,6 @@ func (c *apiConfig) handlerDeleteChirp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = c.dbQueries.DeletePostByID(context.Background(), postID)
+	err = c.dbQueries.DeletePostByID(r.Context(), postID)
 	respondSimple(w, http.StatusNoContent, "", "plain")
 }

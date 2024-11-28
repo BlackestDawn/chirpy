@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"log"
 	"net/http"
 	"time"
@@ -21,7 +20,7 @@ func (c *apiConfig) handlerRefreshAccessToken(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	userId, err := c.dbQueries.GetUserFromRefreshToken(context.Background(), token)
+	userId, err := c.dbQueries.GetUserFromRefreshToken(r.Context(), token)
 	if err != nil {
 		log.Println("no user returned for refresh")
 		respondJSONError(w, http.StatusUnauthorized, "invalid or non-existant refresh token", err)
@@ -45,7 +44,7 @@ func (c *apiConfig) handlerRevokeRefreshToken(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	_, err = c.dbQueries.RevokeRefreshToken(context.Background(), token)
+	_, err = c.dbQueries.RevokeRefreshToken(r.Context(), token)
 	if err != nil {
 		respondJSONError(w, http.StatusInternalServerError, "error revoking refresh token", err)
 		return

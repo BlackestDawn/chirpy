@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
 	"time"
@@ -35,7 +34,7 @@ func (c *apiConfig) handlerAddUser(w http.ResponseWriter, r *http.Request) {
 		Password: hashedPass,
 	}
 
-	retUser, err := c.dbQueries.CreateUser(context.Background(), newUser)
+	retUser, err := c.dbQueries.CreateUser(r.Context(), newUser)
 	if err != nil {
 		respondJSONError(w, http.StatusInternalServerError, "could not create user", err)
 		return
@@ -64,7 +63,7 @@ func (c *apiConfig) handlerLoginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := c.dbQueries.GetUserByEmail(context.Background(), data.Email)
+	user, err := c.dbQueries.GetUserByEmail(r.Context(), data.Email)
 	if err != nil {
 		respondJSONError(w, http.StatusUnauthorized, "incorrect password or login", nil)
 		return
@@ -82,7 +81,7 @@ func (c *apiConfig) handlerLoginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	refreshToken, err := c.dbQueries.GetValidRefreshTokenForUser(context.Background(), user.ID)
+	refreshToken, err := c.dbQueries.GetValidRefreshTokenForUser(r.Context(), user.ID)
 	if err != nil {
 
 		refreshToken, err = auth.MakeRefreshToken()
@@ -91,7 +90,7 @@ func (c *apiConfig) handlerLoginUser(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		_, err = c.dbQueries.CreateRefreshToken(context.Background(), database.CreateRefreshTokenParams{
+		_, err = c.dbQueries.CreateRefreshToken(r.Context(), database.CreateRefreshTokenParams{
 			Token:  refreshToken,
 			UserID: user.ID,
 		})
@@ -103,10 +102,11 @@ func (c *apiConfig) handlerLoginUser(w http.ResponseWriter, r *http.Request) {
 
 	respondJSON(w, http.StatusOK, RetVal{
 		cleanUser: cleanUser{
-			ID:        user.ID,
-			CreatedAt: user.CreatedAt,
-			UpdatedAt: user.UpdatedAt,
-			Email:     user.Email,
+			ID:          user.ID,
+			CreatedAt:   user.CreatedAt,
+			UpdatedAt:   user.UpdatedAt,
+			Email:       user.Email,
+			IsChirpyRed: user.IsChirpyRed,
 		},
 		Token:        token,
 		RefreshToken: refreshToken,
@@ -151,7 +151,7 @@ func (c *apiConfig) handlerUpdateUser(w http.ResponseWriter, r *http.Request) {
 		Email:    data.Email,
 		Password: hashedPW,
 	}
-	user, err := c.dbQueries.UpdatePassword(context.Background(), updateData)
+	user, err := c.dbQueries.UpdatePassword(r.Context(), updateData)
 	if err != nil {
 		respondJSONError(w, http.StatusInternalServerError, "error updating password", err)
 		return

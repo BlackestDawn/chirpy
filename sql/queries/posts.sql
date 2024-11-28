@@ -22,3 +22,9 @@ WHERE id = $1;
 -- name: DeletePostByID :exec
 DELETE FROM posts
 WHERE id = $1;
+
+-- name: ListPostsFromUser :many
+SELECT *
+FROM posts
+WHERE user_id = $1
+ORDER BY created_at ASC;

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"strings"
@@ -25,7 +24,7 @@ func (c *apiConfig) handlerReset(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := c.dbQueries.ResetUsers(context.Background())
+	err := c.dbQueries.ResetUsers(r.Context())
 	if err != nil {
 		respondJSONError(w, http.StatusInternalServerError, "could not reset database", err)
 		return

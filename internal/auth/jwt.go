@@ -2,33 +2,11 @@ package auth
 
 import (
 	"fmt"
-	"net/http"
-	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
-	"golang.org/x/crypto/bcrypt"
 )
-
-func HashPassword(password string) (string, error) {
-	if len(password) > 72 {
-		password = password[:72]
-	}
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), 4)
-	if err != nil {
-		return "", err
-	}
-
-	return string(hash), nil
-}
-
-func CheckPasswordHash(password, hash string) error {
-	if len(password) > 72 {
-		password = password[:72]
-	}
-	return bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
-}
 
 func MakeJWT(userID uuid.UUID, tokenSecret string, expiresIn time.Duration) (string, error) {
 	claim := jwt.RegisteredClaims{
@@ -67,18 +45,4 @@ func ValidateJWT(tokenString, tokenSecret string) (uuid.UUID, error) {
 
 	return retVal, nil
 
-}
-
-func GetBearerToken(headers http.Header) (string, error) {
-	auth := strings.TrimSpace(headers.Get("Authorization"))
-	if auth == "" {
-		return "", fmt.Errorf("no authorization token found")
-	}
-
-	tokenParts := strings.Split(auth, " ")
-	if len(tokenParts) != 2 || strings.ToLower(tokenParts[0]) != "bearer" {
-		return "", fmt.Errorf("malformed bearer token: %s", auth)
-	}
-
-	return tokenParts[1], nil
 }
