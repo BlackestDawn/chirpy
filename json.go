@@ -25,6 +25,10 @@ func respondJSONError(w http.ResponseWriter, code int, msg string, err error) {
 		log.Println(err)
 	}
 
+	if code >= 500 {
+		log.Printf("internal error: %s\n", msg)
+	}
+
 	type errVal struct {
 		Error string `json:"error"`
 	}

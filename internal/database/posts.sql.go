@@ -7,33 +7,29 @@ package database
 
 import (
 	"context"
-	"time"
 
 	"github.com/google/uuid"
 )
 
 const createPost = `-- name: CreatePost :one
 INSERT INTO posts(id, created_at, updated_at, body, user_id)
-VALUES ($1, $2, $3, $4, $5)
+VALUES (
+  gen_random_uuid(),
+  NOW(),
+  NOW(),
+  $1,
+  $2
+)
 returning id, created_at, updated_at, body, user_id
 `
 
 type CreatePostParams struct {
-	ID        uuid.UUID `json:"id"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	Body      string    `json:"body"`
-	UserID    uuid.UUID `json:"user_id"`
+	Body   string    `json:"body"`
+	UserID uuid.UUID `json:"user_id"`
 }
 
 func (q *Queries) CreatePost(ctx context.Context, arg CreatePostParams) (Post, error) {
-	row := q.db.QueryRowContext(ctx, createPost,
-		arg.ID,
-		arg.CreatedAt,
-		arg.UpdatedAt,
-		arg.Body,
-		arg.UserID,
-	)
+	row := q.db.QueryRowContext(ctx, createPost, arg.Body, arg.UserID)
 	var i Post
 	err := row.Scan(
 		&i.ID,

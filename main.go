@@ -29,6 +29,9 @@ func main() {
 	serverMux.HandleFunc("GET /api/chirps", apiCfg.handlerListChirps)
 	serverMux.HandleFunc("GET /api/chirps/{chirpID}", apiCfg.handlerGetChirp)
 	serverMux.HandleFunc("POST /api/users", apiCfg.handlerAddUser)
+	serverMux.HandleFunc("POST /api/login", apiCfg.handlerLoginUser)
+	serverMux.HandleFunc("POST /api/refresh", apiCfg.handlerRefreshAccessToken)
+	serverMux.HandleFunc("POST /api/revoke", apiCfg.handlerRevokeRefreshToken)
 
 	// path routing: admin
 	serverMux.HandleFunc("GET /admin/metrics", apiCfg.handlerHits)
@@ -43,5 +46,6 @@ func main() {
 	}
 
 	// run it
+	log.Println("Starting server")
 	log.Fatal(server.ListenAndServe())
 }
