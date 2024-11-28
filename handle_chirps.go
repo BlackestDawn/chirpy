@@ -75,9 +75,43 @@ func (c *apiConfig) handlerGetChirp(w http.ResponseWriter, r *http.Request) {
 
 	post, err := c.dbQueries.GetPostByID(context.Background(), postID)
 	if err != nil {
-		respondJSONError(w, http.StatusInternalServerError, "error fetching post", err)
+		respondJSONError(w, http.StatusNotFound, "error fetching post", err)
 		return
 	}
 
 	respondJSON(w, http.StatusOK, post)
+}
+
+// Handler: DELETE /api/chirps/{chirpID}
+func (c *apiConfig) handlerDeleteChirp(w http.ResponseWriter, r *http.Request) {
+	postID, err := uuid.Parse(r.PathValue("chirpID"))
+	if err != nil {
+		respondJSONError(w, http.StatusBadRequest, "error parsing UUID", err)
+		return
+	}
+
+	token, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+		respondJSONError(w, http.StatusUnauthorized, "error verifying bearer token", err)
+		return
+	}
+
+	userID, err := auth.ValidateJWT(token, c.tokenSecret)
+	if err != nil {
+		respondJSONError(w, http.StatusUnauthorized, "error verifying access token", err)
+		return
+	}
+
+	post, err := c.dbQueries.GetPostByID(context.Background(), postID)
+	if err != nil {
+		respondJSONError(w, http.StatusNotFound, "error fetching post data", err)
+		return
+	}
+	if post.UserID != userID {
+		respondJSONError(w, http.StatusForbidden, "ID mismatch", nil)
+		return
+	}
+
+	err = c.dbQueries.DeletePostByID(context.Background(), postID)
+	respondSimple(w, http.StatusNoContent, "", "plain")
 }

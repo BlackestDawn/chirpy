@@ -76,7 +76,7 @@ func (q *Queries) GetValidRefreshTokenForUser(ctx context.Context, userID uuid.U
 	return token, err
 }
 
-const revokeAccessToken = `-- name: RevokeAccessToken :one
+const revokeRefreshToken = `-- name: RevokeRefreshToken :one
 UPDATE refresh_tokens
 SET updated_at = NOW(),
   revoked_at = NOW()
@@ -84,14 +84,14 @@ WHERE token = $1
 RETURNING token, revoked_at
 `
 
-type RevokeAccessTokenRow struct {
+type RevokeRefreshTokenRow struct {
 	Token     string       `json:"token"`
 	RevokedAt sql.NullTime `json:"revoked_at"`
 }
 
-func (q *Queries) RevokeAccessToken(ctx context.Context, token string) (RevokeAccessTokenRow, error) {
-	row := q.db.QueryRowContext(ctx, revokeAccessToken, token)
-	var i RevokeAccessTokenRow
+func (q *Queries) RevokeRefreshToken(ctx context.Context, token string) (RevokeRefreshTokenRow, error) {
+	row := q.db.QueryRowContext(ctx, revokeRefreshToken, token)
+	var i RevokeRefreshTokenRow
 	err := row.Scan(&i.Token, &i.RevokedAt)
 	return i, err
 }

@@ -45,7 +45,7 @@ func (c *apiConfig) handlerRevokeRefreshToken(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	_, err = c.dbQueries.RevokeAccessToken(context.Background(), token)
+	_, err = c.dbQueries.RevokeRefreshToken(context.Background(), token)
 	if err != nil {
 		respondJSONError(w, http.StatusInternalServerError, "error revoking refresh token", err)
 		return

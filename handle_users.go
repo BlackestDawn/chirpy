@@ -16,9 +16,6 @@ func (c *apiConfig) handlerAddUser(w http.ResponseWriter, r *http.Request) {
 		Email    string `json:"email"`
 		Password string `json:"password"`
 	}
-	type retVal struct {
-		cleanUser
-	}
 
 	data := new(params)
 	decoder := json.NewDecoder(r.Body)
@@ -44,14 +41,7 @@ func (c *apiConfig) handlerAddUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respondJSON(w, http.StatusCreated, retVal{
-		cleanUser: cleanUser{
-			ID:        retUser.ID,
-			CreatedAt: retUser.CreatedAt,
-			UpdatedAt: retUser.UpdatedAt,
-			Email:     retUser.Email,
-		},
-	})
+	respondJSON(w, http.StatusCreated, retUser)
 }
 
 // Handler: POST /api/login
@@ -68,7 +58,6 @@ func (c *apiConfig) handlerLoginUser(w http.ResponseWriter, r *http.Request) {
 
 	data := new(params)
 	decoder := json.NewDecoder(r.Body)
-
 	err := decoder.Decode(data)
 	if err != nil {
 		respondJSONError(w, http.StatusInternalServerError, "Couldn't decode user data", err)
@@ -122,4 +111,51 @@ func (c *apiConfig) handlerLoginUser(w http.ResponseWriter, r *http.Request) {
 		Token:        token,
 		RefreshToken: refreshToken,
 	})
+}
+
+// Handler: PUT /api/login
+func (c *apiConfig) handlerUpdateUser(w http.ResponseWriter, r *http.Request) {
+	type params struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+
+	token, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+		respondJSONError(w, http.StatusUnauthorized, "error verifying bearer token", err)
+		return
+	}
+
+	data := new(params)
+	decoder := json.NewDecoder(r.Body)
+	err = decoder.Decode(data)
+	if err != nil {
+		respondJSONError(w, http.StatusInternalServerError, "Couldn't decode user data", err)
+		return
+	}
+
+	userID, err := auth.ValidateJWT(token, c.tokenSecret)
+	if err != nil {
+		respondJSONError(w, http.StatusUnauthorized, "error verifying access token", err)
+		return
+	}
+
+	hashedPW, err := auth.HashPassword(data.Password)
+	if err != nil {
+		respondJSONError(w, http.StatusInternalServerError, "error hashing password", err)
+		return
+	}
+
+	updateData := database.UpdatePasswordParams{
+		ID:       userID,
+		Email:    data.Email,
+		Password: hashedPW,
+	}
+	user, err := c.dbQueries.UpdatePassword(context.Background(), updateData)
+	if err != nil {
+		respondJSONError(w, http.StatusInternalServerError, "error updating password", err)
+		return
+	}
+
+	respondJSON(w, http.StatusOK, user)
 }

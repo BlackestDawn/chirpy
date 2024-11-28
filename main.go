@@ -28,10 +28,12 @@ func main() {
 	serverMux.HandleFunc("POST /api/chirps", apiCfg.handlerNewChirp)
 	serverMux.HandleFunc("GET /api/chirps", apiCfg.handlerListChirps)
 	serverMux.HandleFunc("GET /api/chirps/{chirpID}", apiCfg.handlerGetChirp)
-	serverMux.HandleFunc("POST /api/users", apiCfg.handlerAddUser)
+	serverMux.HandleFunc("DELETE /api/chirps/{chirpID}", apiCfg.handlerDeleteChirp)
 	serverMux.HandleFunc("POST /api/login", apiCfg.handlerLoginUser)
 	serverMux.HandleFunc("POST /api/refresh", apiCfg.handlerRefreshAccessToken)
 	serverMux.HandleFunc("POST /api/revoke", apiCfg.handlerRevokeRefreshToken)
+	serverMux.HandleFunc("POST /api/users", apiCfg.handlerAddUser)
+	serverMux.HandleFunc("PUT /api/users", apiCfg.handlerUpdateUser)
 
 	// path routing: admin
 	serverMux.HandleFunc("GET /admin/metrics", apiCfg.handlerHits)

@@ -9,23 +9,19 @@ import (
 
 // Handler: GET /api/healthz
 func handlerHealth(w http.ResponseWriter, r *http.Request) {
-	w.Header().Add("Content-Type", "text/plain; charset=utf-8")
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(http.StatusText(http.StatusOK)))
+	respondSimple(w, http.StatusOK, http.StatusText(http.StatusOK), "plain")
 }
 
 // Handler: GET /admin/metrics
 func (c *apiConfig) handlerHits(w http.ResponseWriter, r *http.Request) {
-	w.Header().Add("Content-Type", "text/html; charset=utf-8")
-	w.WriteHeader(http.StatusOK)
 	hitStr := fmt.Sprintf("<html><body><h1>Welcome, Chirpy Admin</h1><p>Chirpy has been visited %d times!</p></body></html>", c.fileserverHits.Load())
-	w.Write([]byte(hitStr))
+	respondSimple(w, http.StatusOK, hitStr, "html")
 }
 
 // Handler: POST /admin/reset
 func (c *apiConfig) handlerReset(w http.ResponseWriter, r *http.Request) {
 	if strings.ToLower(c.platform) != "dev" {
-		w.WriteHeader(http.StatusForbidden)
+		respondSimple(w, http.StatusForbidden, "Reset only allowed in DEV environment", "plain")
 		return
 	}
 
@@ -37,6 +33,5 @@ func (c *apiConfig) handlerReset(w http.ResponseWriter, r *http.Request) {
 
 	c.fileserverHits.Store(0)
 
-	w.Header().Add("Content-Type", "text/plain; charset=utf-8")
-	w.WriteHeader(http.StatusOK)
+	respondSimple(w, http.StatusOK, "Hit counter and database reset", "plain")
 }

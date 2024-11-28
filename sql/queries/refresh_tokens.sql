@@ -26,7 +26,7 @@ WHERE token = $1 AND
   revoked_at IS NULL AND
   expires_at > NOW();
 
--- name: RevokeAccessToken :one
+-- name: RevokeRefreshToken :one
 UPDATE refresh_tokens
 SET updated_at = NOW(),
   revoked_at = NOW()
